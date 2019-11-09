@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "train.py", line 56, in <module>
+    train(model, device, train_loader, optimizer, epoch)
+  File "train.py", line 17, in train
+    loss = F.nll_loss(output, target)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1836, in nll_loss
+    .format(input.size(0), target.size(0)))
+ValueError: Expected input batch_size (4) to match target batch_size (64).

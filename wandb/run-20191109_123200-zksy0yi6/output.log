@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "train.py", line 56, in <module>
+    train(model, device, train_loader, optimizer, epoch)
+  File "train.py", line 16, in train
+    output = model(data)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/Documents/digit-recognizer/lenet.py", line 55, in forward
+    x = self.fc(x)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/linear.py", line 87, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1372, in linear
+    output = input.matmul(weight.t())
+RuntimeError: size mismatch, m1: [1 x 1024], m2: [16384 x 10] at /pytorch/aten/src/TH/generic/THTensorMath.cpp:197

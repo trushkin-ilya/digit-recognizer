@@ -1,0 +1,23 @@
+{
+    "root": "/home/itrushkin/Documents/digit-recognizer",
+    "program": "train.py",
+    "git": {
+        "remote": "https://github.com/trushkin-ilya/digit-recognizer.git",
+        "commit": "cd6d95a7729b33a308517e56cb9e01d483bc598d"
+    },
+    "email": null,
+    "startedAt": "2019-11-09T13:11:28.063783",
+    "host": "localhost.localdomain",
+    "username": "itrushkin",
+    "executable": "/usr/bin/python3",
+    "os": "Linux-4.18.19-100.fc27.x86_64-x86_64-with-fedora-27-Twenty_Seven",
+    "python": "3.6.6",
+    "cpu_count": 4,
+    "args": [],
+    "state": "finished",
+    "jobType": null,
+    "mode": "run",
+    "project": "digit-recognizer",
+    "heartbeatAt": "2019-11-09T13:15:31.956458",
+    "exitcode": 0
+}

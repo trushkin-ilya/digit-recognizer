@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "train.py", line 51, in <module>
+    model = LeNet4().to(device)
+NameError: name 'LeNet4' is not defined

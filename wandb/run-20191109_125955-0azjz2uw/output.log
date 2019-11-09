@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "train.py", line 56, in <module>
+    train(model, device, train_loader, optimizer, epoch)
+  File "train.py", line 18, in train
+    loss.backward()
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/tensor.py", line 166, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/autograd/__init__.py", line 99, in backward
+    allow_unreachable=True)  # allow_unreachable flag
+RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation: [torch.FloatTensor [64, 84]], which is output 0 of ReluBackward1, is at version 2; expected version 1 instead. Hint: enable anomaly detection to find the operation that failed to compute its gradient, with torch.autograd.set_detect_anomaly(True).

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "train.py", line 51, in <module>
+    model = SuperLeNet().to(device)
+  File "/home/itrushkin/Documents/digit-recognizer/lenet.py", line 123, in __init__
+    super(LeNet1, self).__init__()
+TypeError: super(type, obj): obj must be an instance or subtype of type
