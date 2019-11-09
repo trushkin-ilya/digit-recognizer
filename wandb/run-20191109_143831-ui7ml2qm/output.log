@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "train.py", line 56, in <module>
+    train(model, device, train_loader, optimizer, epoch)
+  File "train.py", line 16, in train
+    output = model(data)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/Documents/digit-recognizer/lenet.py", line 190, in forward
+    output = torch.zeros([x.size(0), 10]).to(device)
+NameError: name 'torch' is not defined
