@@ -1,6 +1,6 @@
 import torch
 import torch.optim as optim
-from lenet import SuperLeNet
+from lenet import LeNetEnsemble
 from data_loader import train_loader, test_loader
 import torch.nn.functional as F
 import os
@@ -43,12 +43,12 @@ def test(model, device, test_loader):
     wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
 
 lr=0.01
-epochs=10
+epochs=100
 momentum=0.5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = SuperLeNet().to(device)
+model = LeNetEnsemble(15,device)
 wandb.watch(model, log="all")
 optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
