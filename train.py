@@ -24,7 +24,6 @@ def train(model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
             
-print(len(test_loader.dataset))
 def test(model, device, test_loader):
     model.eval()
     test_loss = 0
@@ -43,6 +42,9 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
+    test_pred = prediciton(test_loader)
+    out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
+    out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
 
 def prediciton(data_loader):
     model.eval()
@@ -73,9 +75,5 @@ optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 for epoch in range(1, epochs + 1):    
     train(model, device, train_loader, optimizer, epoch)
     test(model, device, test_loader)
-
-test_pred = prediciton(test_loader)
-out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
-out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
 
 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
