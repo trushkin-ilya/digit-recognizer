@@ -16,4 +16,4 @@ test_loader = torch.utils.data.DataLoader(
                         transforms.ToTensor(),
                         transforms.Normalize((0.1307,), (0.3081,))
                     ])),
-    batch_size=1000, shuffle=False, num_workers=1, pin_memory=True)
+    batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
