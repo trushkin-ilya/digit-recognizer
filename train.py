@@ -42,6 +42,22 @@ def test(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
     wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
 
+def prediciton(data_loader):
+    model.eval()
+    test_pred = torch.LongTensor()
+    with torch.no_grad():
+        for i, data in enumerate(data_loader):
+            data = Variable(data, volatile=True)
+            if torch.cuda.is_available():
+                data = data.cuda()
+
+            output = model(data)
+
+            pred = output.cpu().data.max(1, keepdim=True)[1]
+            test_pred = torch.cat((test_pred, pred), dim=0)
+
+    return test_pred
+
 lr=0.01
 epochs=100
 momentum=0.5
@@ -55,5 +71,9 @@ optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 for epoch in range(1, epochs + 1):    
     train(model, device, train_loader, optimizer, epoch)
     test(model, device, test_loader)
+
+test_pred = prediciton(test_loader)
+out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
+out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
 
 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
