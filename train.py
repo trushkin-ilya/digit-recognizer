@@ -29,16 +29,19 @@ def test(model, device, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
+    outputs=[]
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
-            out_df = pd.DataFrame(np.c_[np.arange(1, len(test_loader.dataset)+1)[:,None], pred.numpy()], columns=['ImageId', 'Label'])
-            out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
+            outputs.append(torch.argmax(output).cpu().item())
             correct += pred.eq(target.view_as(pred)).sum().item()
-
+    results = pd.Series(np.array(outputs, dtype = np.int32),name="Label")
+    submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
+    submission = submission.astype(np.int32)
+    submission.to_csv("mnist_test_preds.csv",index=False)
     test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(
