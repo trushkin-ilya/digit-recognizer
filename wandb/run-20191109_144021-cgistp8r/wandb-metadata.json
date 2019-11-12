@@ -14,9 +14,10 @@
     "python": "3.6.6",
     "cpu_count": 4,
     "args": [],
-    "state": "running",
+    "state": "finished",
     "jobType": null,
     "mode": "run",
     "project": "digit-recognizer",
-    "heartbeatAt": "2019-11-09T21:24:00.661473"
+    "heartbeatAt": "2019-11-11T05:46:08.407517",
+    "exitcode": 0
 }

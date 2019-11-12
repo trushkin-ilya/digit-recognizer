@@ -22,7 +22,7 @@ def train(model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
             
-
+print(len(test_loader.dataset))
 def test(model, device, test_loader):
     model.eval()
     test_loss = 0
