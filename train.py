@@ -34,6 +34,8 @@ def test(model, device, test_loader):
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
+            out_df = pd.DataFrame(np.c_[np.arange(1, len(test_loader.dataset)+1)[:,None], pred.numpy()], columns=['ImageId', 'Label'])
+            out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
@@ -42,9 +44,6 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
-    test_pred = prediciton(test_loader)
-    out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
-    out_df.to_csv('gdrive/My Drive/12345/submission.csv', index=False)
 
 def prediciton(data_loader):
     model.eval()
