@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 from lenet import LeNetEnsemble
-from data_loader import train_loader, test_loader
+from data_loader import train_loader, test_loader, kaggle_loader
 import torch.nn.functional as F
 import os
 from torch.autograd import Variable
@@ -29,15 +29,14 @@ def test(model, device, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-    outputs=[]
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
-            outputs.append(torch.argmax(output).cpu().item())
             correct += pred.eq(target.view_as(pred)).sum().item()
+        predictions = make_predictions(model, kaggle_loader)
     results = pd.Series(np.array(outputs, dtype = np.int32),name="Label")
     submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
     submission = submission.astype(np.int32)
@@ -49,21 +48,23 @@ def test(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
     wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
 
-def prediciton(data_loader):
+def make_predictions(model,data_loader):
     model.eval()
-    test_pred = torch.LongTensor()
-    with torch.no_grad():
-        for i, data in enumerate(data_loader):
-            data = Variable(data, volatile=True)
-            if torch.cuda.is_available():
-                data = data.cuda()
+    test_preds = torch.LongTensor()
+    
+    for i, data in enumerate(data_loader):
+        data = data.unsqueeze(1)
+        
+        if torch.cuda.is_available():
+            data = data.cuda()
+            
+        output = model(data)
+        
+        preds = output.cpu().data.max(1, keepdim=True)[1]
+        test_preds = torch.cat((test_preds, preds), dim=0)
+        
+    return test_preds
 
-            output = model(data)
-
-            pred = output.cpu().data.max(1, keepdim=True)[1]
-            test_pred = torch.cat((test_pred, pred), dim=0)
-
-    return test_pred
 
 lr=0.01
 epochs=1
