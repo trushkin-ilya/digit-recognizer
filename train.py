@@ -4,6 +4,8 @@ from lenet import LeNetEnsemble
 from data_loader import train_loader, test_loader
 import torch.nn.functional as F
 import os
+from torch.autograd import Variable
+import pandas as pd
 
 import wandb
 wandb.init(project="digit-recognizer")
