@@ -41,7 +41,7 @@ def test(model, device, test_loader):
     results = pd.Series(np.array(outputs, dtype = np.int32),name="Label")
     submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
     submission = submission.astype(np.int32)
-    submission.to_csv("mnist_test_preds.csv",index=False)
+    submission.to_csv("/content/gdrive/My Drive/12345/predictions.csv",index=False)
     test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(
