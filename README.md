@@ -16,4 +16,4 @@ Make sure to install dependencies from `requirements.txt`. After that run from r
 
 ``train.py --epochs=100 --lr=0.01 --momentum=0.5``
 
-While executing, you will be asked for wandb visualizing. But if you don't have access to my W&B project, you won't be able to proceed. Please, skip visualisation or ask me to grant you access rights.
+While executing, you will be asked for wandb visualizing. But if you don't have access to my W&B project, you won't be able to proceed. Please, skip visualization or ask me to grant you access rights.
