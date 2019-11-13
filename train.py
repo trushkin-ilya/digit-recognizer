@@ -31,7 +31,7 @@ def test(model, device, test_loader, use_wandb):
     model.eval()
     preds=torch.LongTensor()
     with torch.no_grad():
-        for data in test_loader:
+        for _, data in enumerate(test_loader):
             data = data.to(device)
             output = model(data)
             torch.cat((preds,output.argmax(dim=1, keepdim=True))
