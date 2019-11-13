@@ -61,7 +61,7 @@ def make_predictions(model,data_loader):
             
         output = model(data)
         
-        preds = output.cpu().data.max(1, keepdim=True)[1]
+        preds = output.cpu().data.max(1, keepdim=True)[1][0]
         test_preds = torch.cat((test_preds, preds), dim=0)
         
     return test_preds
