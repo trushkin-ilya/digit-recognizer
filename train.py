@@ -39,7 +39,7 @@ def test(model, device, test_loader):
         predictions = make_predictions(model, kaggle_loader)
         print(predictions)
     results = pd.Series(np.array(predictions, dtype = np.int32),name="Label")
-    submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
+    submission = pd.concat([pd.Series(range(1,len(results)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
     submission = submission.astype(np.int32)
     submission.to_csv("/content/gdrive/My Drive/12345/predictions.csv",index=False)
     test_loss /= len(test_loader.dataset)
@@ -68,7 +68,7 @@ def make_predictions(model,data_loader):
 
 
 lr=0.01
-epochs=1
+epochs=100
 momentum=0.5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
