@@ -11,6 +11,8 @@ import pandas as pd
 import wandb
 wandb.init(project="digit-recognizer")
 
+import argparse
+
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -66,19 +68,23 @@ def make_predictions(model,data_loader):
         
     return test_preds
 
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser(description="Trains the 15 LeNet ensemble.")
+    argparser.add_argument("--lr", type=float, default=0.01)
+    argparser.add_argument("--epochs", type=int, default=100)
+    argparser.add_argument("--momentum", type=float, default=0.5)
+    args = argparser.parse_args()
+    lr = args.lr
+    epochs = args.epochs
+    momentum = args.momentum
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-lr=0.01
-epochs=100
-momentum=0.5
+    model = LeNetEnsemble(15, device)
+    wandb.watch(model, log="all")
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    for epoch in range(1, epochs + 1):    
+        train(model, device, train_loader, optimizer, epoch)
+        test(model, device, test_loader)
 
-model = LeNetEnsemble(15,device)
-wandb.watch(model, log="all")
-optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-
-for epoch in range(1, epochs + 1):    
-    train(model, device, train_loader, optimizer, epoch)
-    test(model, device, test_loader)
-
-torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
+    torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
