@@ -10,7 +10,6 @@ import pandas as pd
 import torch.utils.data
 
 import wandb
-wandb.init(project="digit-recognizer")
 
 import argparse
 
@@ -28,7 +27,7 @@ def train(model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
             
-def test(model, device, test_loader):
+def test(model, device, test_loader, use_wandb):
     model.eval()
     test_loss = 0
     correct = 0
@@ -39,7 +38,7 @@ def test(model, device, test_loader):
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
-        predictions = make_predictions(model, kaggle_loader)
+        predictions = make_predictions(model, test_loader)
         print(predictions)
     results = pd.Series(np.array(predictions, dtype = np.int32),name="Label")
     submission = pd.concat([pd.Series(range(1,len(results)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
@@ -50,7 +49,8 @@ def test(model, device, test_loader):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.4f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-    wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
+    if use_wandb:
+        wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
 
 def make_predictions(model,data_loader):
     model.eval()
@@ -74,19 +74,25 @@ if __name__ == "__main__":
     argparser.add_argument("--lr", type=float, default=0.01)
     argparser.add_argument("--epochs", type=int, default=100)
     argparser.add_argument("--momentum", type=float, default=0.5)
+    argparser.add_argument("--use-wandb", type=bool, default=False)
     args = argparser.parse_args()
     lr = args.lr
     epochs = args.epochs
     momentum = args.momentum
+    use_wandb= args.use_wandb
+    if use_wandb:
+        wandb.init(project="digit-recognizer")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_loader = torch.utils.data.DataLoader(dataset=MNISTTrainDataset("train.csv"), batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(dataset=MNISTTestDataset("test.csv"),batch_size=64, shuffle=False)
     model = LeNetEnsemble(15, device)
-    wandb.watch(model, log="all")
+    if use_wandb:
+        wandb.watch(model, log="all")
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
     for epoch in range(1, epochs + 1):    
         train(model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)
 
-    torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
+    if use_wandb:
+        torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
