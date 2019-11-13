@@ -1,0 +1,4283 @@
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+index 016601c..8805d73 100644
+--- a/.vscode/settings.json
++++ b/.vscode/settings.json
+@@ -1,5 +1,5 @@
+ {
+-    "python.pythonPath": "C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38-32\\python.exe",
++    "python.pythonPath": "/usr/bin/python3",
+     "python.linting.pylintEnabled": true,
+     "python.linting.enabled": true
+ }
+\ No newline at end of file
+diff --git a/__pycache__/data_loader.cpython-36.pyc b/__pycache__/data_loader.cpython-36.pyc
+index d0ac81e..4e52498 100644
+Binary files a/__pycache__/data_loader.cpython-36.pyc and b/__pycache__/data_loader.cpython-36.pyc differ
+diff --git a/data_loader.py b/data_loader.py
+index a897df2..9eca3a7 100644
+--- a/data_loader.py
++++ b/data_loader.py
+@@ -2,28 +2,32 @@ import torch
+ import torch.utils.data
+ from torchvision import datasets, transforms
+ import PIL
++import numpy as np
+ import pandas as pd
+ 
++class MNISTTrainDataset(torch.utils.data.Dataset):
++    def __init__(self, path):
++        self.transform = transforms.Compose(
++                            [transforms.ToPILImage(), transforms.RandomAffine(20,(3,3)),
++                             transforms.ToTensor(), transforms.Normalize(mean=(0.1307,), std=(0.3081,))])
++        df = pd.read_csv(path)
++        self.X = df.iloc[:,1:].values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
++        self.y = torch.from_numpy(df.iloc[:,0].values)
+ 
++    def __len__(self):
++        return len(self.X)
+ 
+-train_loader = torch.utils.data.DataLoader(
+-    datasets.MNIST('../data', train=True, download=True,
+-                    transform=transforms.Compose([
+-                        transforms.RandomRotation(45, resample=PIL.Image.BILINEAR), # аугментация: поворот до 45°
+-                        transforms.ToTensor(),
+-                        transforms.Normalize((0.1307,), (0.3081,))
+-                    ])),
+-    batch_size=64, shuffle=True, num_workers=1, pin_memory=True)
++    def __getitem__(self, idx):
++        return self.transform(self.X[idx]), self.y[idx]
+ 
+-test_loader = torch.utils.data.DataLoader(
+-    datasets.MNIST('../data', train=False, transform=transforms.Compose([
+-                        transforms.ToTensor(),
+-                        transforms.Normalize((0.1307,), (0.3081,))
+-                    ])),
+-    batch_size=1000, shuffle=True, num_workers=1, pin_memory=True)
++class MNISTTestDataset(torch.utils.data.Dataset):
++    def __init__(self, path):
++        self.transform = transforms.Compose([transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean=(0.1307,), std=(0.3081,))])
++        df = pd.read_csv(path)
++        self.X = df.values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
+ 
+-test_df = pd.read_csv("test.csv")
+-test_images = (test_df.iloc[:,:].values).astype('float32')
+-test_images = test_images.reshape(test_images.shape[0], 28, 28)
+-test_images_tensor = torch.tensor(test_images)/255.0
+-kaggle_loader=torch.utils.data.DataLoader(test_images_tensor, batch_size=1, num_workers=1, shuffle=False)
++    def __len__(self):
++        return len(self.X)
++    
++    def __getitem__(self, idx):
++            return self.transform(self.X[idx])
+diff --git a/kkk.py b/kkk.py
+deleted file mode 100644
+index f0c9d3e..0000000
+--- a/kkk.py
++++ /dev/null
+@@ -1,74 +0,0 @@
+-# This Python 3 environment comes with many helpful analytics libraries installed
+-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
+-# For example, here's several helpful packages to load in 
+-
+-import numpy as np # linear algebra
+-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+-from torch.utils import data 
+-import torch
+-from torchvision import transforms
+-from torch import nn, zeros
+-from torch.autograd import Variable
+-import torch.nn.functional as F
+-from lenet import LeNetEnsemble
+-
+-
+-class MNIST_data(data.Dataset):
+-    """MNIST dtaa set"""
+-    
+-    def __init__(self, file_path, 
+-                 transform = transforms.Compose([transforms.ToPILImage(), transforms.ToTensor(), 
+-                     transforms.Normalize(mean=(0.5,), std=(0.5,))])
+-                ):
+-        
+-        df = pd.read_csv(file_path)
+-        
+-        if len(df.columns) == 784:
+-            # test data
+-            self.X = df.values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
+-            self.y = None
+-        else:
+-            # training data
+-            self.X = df.iloc[:,1:].values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
+-            self.y = torch.from_numpy(df.iloc[:,0].values)
+-            
+-        self.transform = transform
+-    
+-    def __len__(self):
+-        return len(self.X)
+-
+-    def __getitem__(self, idx):
+-        if self.y is not None:
+-            return self.transform(self.X[idx]), self.y[idx]
+-        else:
+-            return self.transform(self.X[idx])
+-
+-# Input data files are available in the "../input/" directory.
+-# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
+-
+-# Any results you write to the current directory are saved as output.
+-test_dataset = MNIST_data('test.csv')
+-test_loader = data.DataLoader(dataset=test_dataset,batch_size=1000, shuffle=False)
+-
+-model = LeNetEnsemble(15,'cpu')
+-model.load_state_dict(torch.load('/home/itrushkin/Documents/digit-recognizer/wandb/run-20191109_144021-cgistp8r/model.pt'))
+-    
+-def prediciton(data_loader):
+-    model.eval()
+-    test_pred = torch.LongTensor()
+-    with torch.no_grad():
+-        for i, data in enumerate(data_loader):
+-            data = Variable(data, volatile=True)
+-            #if torch.cuda.is_available():
+-                #data = data.cuda()
+-
+-            output = model(data)
+-
+-            pred = output.cpu().data.max(1, keepdim=True)[1]
+-            test_pred = torch.cat((test_pred, pred), dim=0)
+-
+-    return test_pred
+-test_pred = prediciton(test_loader)
+-out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
+-out_df.to_csv('submission.csv', index=False)
+-print(model)
+diff --git a/train.py b/train.py
+index 0321cc6..a37997d 100644
+--- a/train.py
++++ b/train.py
+@@ -1,12 +1,13 @@
+ import torch
+ import torch.optim as optim
+ from lenet import LeNetEnsemble
+-from data_loader import train_loader, test_loader, kaggle_loader
++from data_loader import MNISTTrainDataset, MNISTTestDataset
+ import torch.nn.functional as F
+ import os
+ from torch.autograd import Variable
+ import numpy as np
+ import pandas as pd
++import torch.utils.data
+ 
+ import wandb
+ wandb.init(project="digit-recognizer")
+@@ -78,7 +79,8 @@ if __name__ == "__main__":
+     epochs = args.epochs
+     momentum = args.momentum
+     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+-
++    train_loader = torch.utils.data.DataLoader(dataset=MNISTTrainDataset("train.csv"), batch_size=1000, shuffle=True)
++    test_loader = torch.utils.data.DataLoader(dataset=MNISTTestDataset("test.csv"),batch_size=1000, shuffle=False)
+     model = LeNetEnsemble(15, device)
+     wandb.watch(model, log="all")
+     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+diff --git a/wandb/debug.log b/wandb/debug.log
+index d80f84a..ef6b611 100644
+--- a/wandb/debug.log
++++ b/wandb/debug.log
+@@ -1,60 +1,19 @@
+-2019-11-14 00:03:36,291 DEBUG   MainThread:5604 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
+-2019-11-14 00:03:36,296 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
+-2019-11-14 00:03:36,300 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,302 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,308 DEBUG   MainThread:5604 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/9qzc9lrk
+-2019-11-14 00:03:36,311 INFO    MainThread:5604 [run_manager.py:wrap_existing_process():1131] wrapping existing process 5589
+-2019-11-14 00:03:36,311 WARNING MainThread:5604 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
+-2019-11-14 00:03:36,314 DEBUG   MainThread:5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
+-2019-11-14 00:03:36,511 DEBUG   MainThread:5604 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
+-2019-11-14 00:03:36,552 INFO    MainThread:5604 [run_manager.py:init_run():916] system metrics and metadata threads started
+-2019-11-14 00:03:36,552 INFO    MainThread:5604 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
+-2019-11-14 00:03:36,561 DEBUG   Thread-14 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:36,939 DEBUG   Thread-14 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 574
+-2019-11-14 00:03:36,949 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1035] saving patches
+-2019-11-14 00:03:36,950 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,953 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,956 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,962 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,970 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'merge-base', 'HEAD', '4115426bb991efeae53858954449c83817cc731b'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+-2019-11-14 00:03:36,973 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1039] saving pip packages
+-2019-11-14 00:03:36,974 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1041] initializing streaming files api
+-2019-11-14 00:03:36,974 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1048] unblocking file change observer, beginning sync with W&B servers
+-2019-11-14 00:03:36,975 INFO    MainThread:5604 [run_manager.py:wrap_existing_process():1148] informing user process we are ready to proceed
+-2019-11-14 00:03:36,977 INFO    MainThread:5604 [run_manager.py:_sync_etc():1255] entering loop for messages from user process
+-2019-11-14 00:03:36,978 DEBUG   Thread-15 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:37,218 DEBUG   Thread-15 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+-2019-11-14 00:03:37,296 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/config.yaml
+-2019-11-14 00:03:37,302 DEBUG   Thread-3  :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:37,579 DEBUG   Thread-3  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
+-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
+-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/requirements.txt
+-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/diff.patch
+-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
+-2019-11-14 00:03:38,295 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-summary.json
+-2019-11-14 00:03:39,296 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
+-2019-11-14 00:03:39,297 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-summary.json
+-2019-11-14 00:03:39,299 DEBUG   Thread-7  :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:39,304 DEBUG   Thread-16 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:39,553 DEBUG   Thread-16 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 804
+-2019-11-14 00:03:39,558 DEBUG   Thread-16 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
+-2019-11-14 00:03:39,982 DEBUG   Thread-16 :5604 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/9qzc9lrk/___batch_archive_1.tgz?Expires=1573679079&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=LZJQsJiUK0pnwVQwQ5GRb6oejMe6MPTspyFuNuLrqXY%2FD8fb7babXxZLYlLHh3IYcCJShDTHvvIqeP%2BO9s7US7WglzkxoCQe%2BnOSOc%2BhkHBO9%2FxPNf9k6DGOeE7HVBt0x75PkEHIiNOZTn8qfxRYd9X8z0LjbmyBzLYoY2xzhsaY1tZvKLeimpVI7BbOdmLrcgokg443n7tPql4PVAWp6yGVz%2FxXy9GcJVvB20d9WxYQBX%2BQod2Dac7JmfsxCmGmV370DxzZ%2B1ykENgpSfRRnL08K20%2B0S1DnUMXbgi7LHc%2B67CyZtG%2Bvi4i1rHnVhnfcvGxYSPfJH9lzKM3Aeuyzg%3D%3D HTTP/1.1" 200 0
+-2019-11-14 00:03:39,983 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
+-2019-11-14 00:03:52,223 DEBUG   Thread-15 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:52,301 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
+-2019-11-14 00:03:52,377 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
+-2019-11-14 00:03:52,468 DEBUG   Thread-15 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+-2019-11-14 00:03:53,094 INFO    MainThread:5604 [run_manager.py:_sync_etc():1311] process received interrupt signal, shutting down
+-2019-11-14 00:03:53,094 INFO    MainThread:5604 [run_manager.py:_sync_etc():1364] closing log streams and sending exitcode to W&B
+-2019-11-14 00:03:53,095 INFO    MainThread:5604 [run_manager.py:shutdown():1055] shutting down system stats and metadata service
+-2019-11-14 00:03:53,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
+-2019-11-14 00:03:53,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-events.jsonl
+-2019-11-14 00:03:53,569 INFO    MainThread:5604 [run_manager.py:shutdown():1067] stopping streaming files and file change observer
+-2019-11-14 00:03:54,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
+-2019-11-14 00:03:54,311 DEBUG   MainThread:5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:54,623 DEBUG   MainThread:5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
+-2019-11-14 00:03:55,194 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
+-2019-11-14 00:03:55,315 DEBUG   Thread-19 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+-2019-11-14 00:03:55,504 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 310
+-2019-11-14 00:03:55,505 INFO    MainThread:5604 [run_manager.py:_sync_etc():1376] process only ran for 19 seconds, not syncing files
+-2019-11-14 00:03:55,505 INFO    MainThread:5604 [9qzc9lrk:run_manager.py:_sync_etc():1376] process only ran for 19 seconds, not syncing files
++2019-11-14 01:17:11,163 DEBUG   MainThread:9013 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
++2019-11-14 01:17:11,168 DEBUG   MainThread:9013 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
++2019-11-14 01:17:11,173 DEBUG   MainThread:9013 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,176 DEBUG   MainThread:9013 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,182 DEBUG   MainThread:9013 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/vynpk1qp
++2019-11-14 01:17:11,185 INFO    MainThread:9013 [run_manager.py:wrap_existing_process():1131] wrapping existing process 9003
++2019-11-14 01:17:11,186 WARNING MainThread:9013 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
++2019-11-14 01:17:11,189 DEBUG   MainThread:9013 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
++2019-11-14 01:17:11,312 DEBUG   MainThread:9013 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
++2019-11-14 01:17:11,350 INFO    MainThread:9013 [run_manager.py:init_run():916] system metrics and metadata threads started
++2019-11-14 01:17:11,350 INFO    MainThread:9013 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
++2019-11-14 01:17:11,358 DEBUG   Thread-14 :9013 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++2019-11-14 01:17:11,640 DEBUG   Thread-14 :9013 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 578
++2019-11-14 01:17:11,644 INFO    Thread-14 :9013 [run_manager.py:_upsert_run():1035] saving patches
++2019-11-14 01:17:11,644 DEBUG   Thread-14 :9013 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,648 DEBUG   Thread-14 :9013 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,652 DEBUG   Thread-14 :9013 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,657 DEBUG   Thread-14 :9013 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++2019-11-14 01:17:11,679 DEBUG   Thread-14 :9013 [cmd.py:execute():724] Popen(['git', 'merge-base', 'HEAD', '957466bf2d3a1406cef35e6c640bd0769d31d57c'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+diff --git a/wandb/run-20191113_213341-opwf6x0m/config.yaml b/wandb/run-20191113_213341-opwf6x0m/config.yaml
+new file mode 100644
+index 0000000..e698a11
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/config.yaml
+@@ -0,0 +1,9 @@
++wandb_version: 1
++
++_wandb:
++  desc: null
++  value:
++    cli_version: 0.8.15
++    framework: torch
++    is_jupyter_run: false
++    python_version: 3.6.6
+diff --git a/wandb/run-20191113_213341-opwf6x0m/diff.patch b/wandb/run-20191113_213341-opwf6x0m/diff.patch
+new file mode 100644
+index 0000000..b8c7435
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/diff.patch
+@@ -0,0 +1,163 @@
++diff --git a/kkk.py b/kkk.py
++deleted file mode 100644
++index f0c9d3e..0000000
++--- a/kkk.py
+++++ /dev/null
++@@ -1,74 +0,0 @@
++-# This Python 3 environment comes with many helpful analytics libraries installed
++-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
++-# For example, here's several helpful packages to load in 
++-
++-import numpy as np # linear algebra
++-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
++-from torch.utils import data 
++-import torch
++-from torchvision import transforms
++-from torch import nn, zeros
++-from torch.autograd import Variable
++-import torch.nn.functional as F
++-from lenet import LeNetEnsemble
++-
++-
++-class MNIST_data(data.Dataset):
++-    """MNIST dtaa set"""
++-    
++-    def __init__(self, file_path, 
++-                 transform = transforms.Compose([transforms.ToPILImage(), transforms.ToTensor(), 
++-                     transforms.Normalize(mean=(0.5,), std=(0.5,))])
++-                ):
++-        
++-        df = pd.read_csv(file_path)
++-        
++-        if len(df.columns) == 784:
++-            # test data
++-            self.X = df.values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
++-            self.y = None
++-        else:
++-            # training data
++-            self.X = df.iloc[:,1:].values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
++-            self.y = torch.from_numpy(df.iloc[:,0].values)
++-            
++-        self.transform = transform
++-    
++-    def __len__(self):
++-        return len(self.X)
++-
++-    def __getitem__(self, idx):
++-        if self.y is not None:
++-            return self.transform(self.X[idx]), self.y[idx]
++-        else:
++-            return self.transform(self.X[idx])
++-
++-# Input data files are available in the "../input/" directory.
++-# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
++-
++-# Any results you write to the current directory are saved as output.
++-test_dataset = MNIST_data('test.csv')
++-test_loader = data.DataLoader(dataset=test_dataset,batch_size=1000, shuffle=False)
++-
++-model = LeNetEnsemble(15,'cpu')
++-model.load_state_dict(torch.load('/home/itrushkin/Documents/digit-recognizer/wandb/run-20191109_144021-cgistp8r/model.pt'))
++-    
++-def prediciton(data_loader):
++-    model.eval()
++-    test_pred = torch.LongTensor()
++-    with torch.no_grad():
++-        for i, data in enumerate(data_loader):
++-            data = Variable(data, volatile=True)
++-            #if torch.cuda.is_available():
++-                #data = data.cuda()
++-
++-            output = model(data)
++-
++-            pred = output.cpu().data.max(1, keepdim=True)[1]
++-            test_pred = torch.cat((test_pred, pred), dim=0)
++-
++-    return test_pred
++-test_pred = prediciton(test_loader)
++-out_df = pd.DataFrame(np.c_[np.arange(1, len(test_dataset)+1)[:,None], test_pred.numpy()], columns=['ImageId', 'Label'])
++-out_df.to_csv('submission.csv', index=False)
++-print(model)
++diff --git a/wandb/debug.log b/wandb/debug.log
++index d80f84a..ec38898 100644
++--- a/wandb/debug.log
+++++ b/wandb/debug.log
++@@ -1,60 +1,18 @@
++-2019-11-14 00:03:36,291 DEBUG   MainThread:5604 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
++-2019-11-14 00:03:36,296 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
++-2019-11-14 00:03:36,300 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,302 DEBUG   MainThread:5604 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,308 DEBUG   MainThread:5604 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/9qzc9lrk
++-2019-11-14 00:03:36,311 INFO    MainThread:5604 [run_manager.py:wrap_existing_process():1131] wrapping existing process 5589
++-2019-11-14 00:03:36,311 WARNING MainThread:5604 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
++-2019-11-14 00:03:36,314 DEBUG   MainThread:5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
++-2019-11-14 00:03:36,511 DEBUG   MainThread:5604 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
++-2019-11-14 00:03:36,552 INFO    MainThread:5604 [run_manager.py:init_run():916] system metrics and metadata threads started
++-2019-11-14 00:03:36,552 INFO    MainThread:5604 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
++-2019-11-14 00:03:36,561 DEBUG   Thread-14 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:36,939 DEBUG   Thread-14 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 574
++-2019-11-14 00:03:36,949 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1035] saving patches
++-2019-11-14 00:03:36,950 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,953 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,956 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,962 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,970 DEBUG   Thread-14 :5604 [cmd.py:execute():724] Popen(['git', 'merge-base', 'HEAD', '4115426bb991efeae53858954449c83817cc731b'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
++-2019-11-14 00:03:36,973 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1039] saving pip packages
++-2019-11-14 00:03:36,974 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1041] initializing streaming files api
++-2019-11-14 00:03:36,974 INFO    Thread-14 :5604 [run_manager.py:_upsert_run():1048] unblocking file change observer, beginning sync with W&B servers
++-2019-11-14 00:03:36,975 INFO    MainThread:5604 [run_manager.py:wrap_existing_process():1148] informing user process we are ready to proceed
++-2019-11-14 00:03:36,977 INFO    MainThread:5604 [run_manager.py:_sync_etc():1255] entering loop for messages from user process
++-2019-11-14 00:03:36,978 DEBUG   Thread-15 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:37,218 DEBUG   Thread-15 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
++-2019-11-14 00:03:37,296 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/config.yaml
++-2019-11-14 00:03:37,302 DEBUG   Thread-3  :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:37,579 DEBUG   Thread-3  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
++-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
++-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/requirements.txt
++-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/diff.patch
++-2019-11-14 00:03:37,582 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
++-2019-11-14 00:03:38,295 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-summary.json
++-2019-11-14 00:03:39,296 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
++-2019-11-14 00:03:39,297 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-summary.json
++-2019-11-14 00:03:39,299 DEBUG   Thread-7  :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:39,304 DEBUG   Thread-16 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:39,553 DEBUG   Thread-16 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 804
++-2019-11-14 00:03:39,558 DEBUG   Thread-16 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
++-2019-11-14 00:03:39,982 DEBUG   Thread-16 :5604 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/9qzc9lrk/___batch_archive_1.tgz?Expires=1573679079&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=LZJQsJiUK0pnwVQwQ5GRb6oejMe6MPTspyFuNuLrqXY%2FD8fb7babXxZLYlLHh3IYcCJShDTHvvIqeP%2BO9s7US7WglzkxoCQe%2BnOSOc%2BhkHBO9%2FxPNf9k6DGOeE7HVBt0x75PkEHIiNOZTn8qfxRYd9X8z0LjbmyBzLYoY2xzhsaY1tZvKLeimpVI7BbOdmLrcgokg443n7tPql4PVAWp6yGVz%2FxXy9GcJVvB20d9WxYQBX%2BQod2Dac7JmfsxCmGmV370DxzZ%2B1ykENgpSfRRnL08K20%2B0S1DnUMXbgi7LHc%2B67CyZtG%2Bvi4i1rHnVhnfcvGxYSPfJH9lzKM3Aeuyzg%3D%3D HTTP/1.1" 200 0
++-2019-11-14 00:03:39,983 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
++-2019-11-14 00:03:52,223 DEBUG   Thread-15 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:52,301 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/output.log
++-2019-11-14 00:03:52,377 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
++-2019-11-14 00:03:52,468 DEBUG   Thread-15 :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
++-2019-11-14 00:03:53,094 INFO    MainThread:5604 [run_manager.py:_sync_etc():1311] process received interrupt signal, shutting down
++-2019-11-14 00:03:53,094 INFO    MainThread:5604 [run_manager.py:_sync_etc():1364] closing log streams and sending exitcode to W&B
++-2019-11-14 00:03:53,095 INFO    MainThread:5604 [run_manager.py:shutdown():1055] shutting down system stats and metadata service
++-2019-11-14 00:03:53,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
++-2019-11-14 00:03:53,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-events.jsonl
++-2019-11-14 00:03:53,569 INFO    MainThread:5604 [run_manager.py:shutdown():1067] stopping streaming files and file change observer
++-2019-11-14 00:03:54,302 INFO    Thread-3  :5604 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_210335-9qzc9lrk/wandb-metadata.json
++-2019-11-14 00:03:54,311 DEBUG   MainThread:5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:54,623 DEBUG   MainThread:5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
++-2019-11-14 00:03:55,194 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 311
++-2019-11-14 00:03:55,315 DEBUG   Thread-19 :5604 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
++-2019-11-14 00:03:55,504 DEBUG   Thread-7  :5604 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/9qzc9lrk/file_stream HTTP/1.1" 200 310
++-2019-11-14 00:03:55,505 INFO    MainThread:5604 [run_manager.py:_sync_etc():1376] process only ran for 19 seconds, not syncing files
++-2019-11-14 00:03:55,505 INFO    MainThread:5604 [9qzc9lrk:run_manager.py:_sync_etc():1376] process only ran for 19 seconds, not syncing files
+++2019-11-14 00:33:41,479 DEBUG   MainThread:6586 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
+++2019-11-14 00:33:41,484 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
+++2019-11-14 00:33:41,488 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+++2019-11-14 00:33:41,490 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+++2019-11-14 00:33:41,495 DEBUG   MainThread:6586 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/opwf6x0m
+++2019-11-14 00:33:41,497 INFO    MainThread:6586 [run_manager.py:wrap_existing_process():1131] wrapping existing process 6573
+++2019-11-14 00:33:41,498 WARNING MainThread:6586 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
+++2019-11-14 00:33:41,500 DEBUG   MainThread:6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
+++2019-11-14 00:33:41,642 DEBUG   MainThread:6586 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
+++2019-11-14 00:33:41,687 INFO    MainThread:6586 [run_manager.py:init_run():916] system metrics and metadata threads started
+++2019-11-14 00:33:41,687 INFO    MainThread:6586 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
+++2019-11-14 00:33:41,695 DEBUG   Thread-14 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+++2019-11-14 00:33:42,001 DEBUG   Thread-14 :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 574
+++2019-11-14 00:33:42,005 INFO    Thread-14 :6586 [run_manager.py:_upsert_run():1035] saving patches
+++2019-11-14 00:33:42,005 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+++2019-11-14 00:33:42,009 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+++2019-11-14 00:33:42,013 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+++2019-11-14 00:33:42,018 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+diff --git a/wandb/run-20191113_213341-opwf6x0m/output.log b/wandb/run-20191113_213341-opwf6x0m/output.log
+new file mode 100644
+index 0000000..ad2c136
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/output.log
+@@ -0,0 +1 @@
++Train Epoch: 1 [0/60000 (0%)]	Loss: 38.055912
+diff --git a/wandb/run-20191113_213341-opwf6x0m/requirements.txt b/wandb/run-20191113_213341-opwf6x0m/requirements.txt
+new file mode 100644
+index 0000000..6525592
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/requirements.txt
+@@ -0,0 +1,92 @@
++absl-py==0.8.1
++argh==0.26.2
++astor==0.8.0
++astroid==2.2.5
++atari-py==0.1.7
++brlapi==0.6.6
++certifi==2019.9.11
++chardet==3.0.4
++click==7.0
++cloudpickle==0.8.1
++configparser==4.0.2
++cycler==0.10.0
++dask==1.1.4
++decorator==4.4.0
++docker-pycreds==0.4.0
++future==0.17.1
++gast==0.3.2
++gitdb2==2.0.6
++gitpython==3.0.4
++google-pasta==0.1.7
++gpg==1.10.0
++gql==0.1.0
++graphql-core==2.2.1
++grpcio==1.24.1
++gym==0.12.0
++h5py==2.10.0
++idna==2.8
++iniparse==0.4
++ipy==0.81
++isort==4.3.16
++keras-applications==1.0.8
++keras-preprocessing==1.1.0
++kiwisolver==1.0.1
++lazy-object-proxy==1.3.1
++markdown==3.1.1
++matplotlib==3.0.3
++mccabe==0.6.1
++networkx==2.2
++numpy==1.17.3
++nvidia-ml-py3==7.352.0
++pandas==0.24.2
++pathtools==0.1.2
++pillow==6.2.1
++pip==9.0.3
++promise==2.2.1
++protobuf==3.7.0
++psutil==5.6.5
++pycairo==1.15.3
++pygame==1.9.4
++pyglet==1.3.2
++pygobject==3.26.1
++pylint==2.3.1
++pyopengl-accelerate==3.1.1a1
++pyopengl==3.1.0
++pyparsing==2.3.1
++python-dateutil==2.8.1
++pytz==2018.9
++pywavelets==1.0.2
++pyxdg==0.25
++pyyaml==5.1.2
++requests==2.22.0
++rpm==4.14.2.1
++rx==1.6.1
++scikit-image==0.14.2
++scipy==1.2.1
++sentry-sdk==0.13.2
++sepolicy==1.1
++setools==4.1.1
++setuptools==41.4.0
++shortuuid==0.5.0
++six==1.13.0
++slip.dbus==0.6.4
++slip==0.6.4
++smmap2==2.0.5
++sssdconfig==1.16.3
++subprocess32==3.5.4
++tensorboard==1.14.0
++tensorboardx==1.6
++tensorflow-estimator==1.14.0
++tensorflow==1.14.0
++termcolor==1.1.0
++toolz==0.9.0
++torch==1.3.1
++torchvision==0.4.2
++tqdm==4.31.1
++typed-ast==1.3.1
++urllib3==1.25.6
++wandb==0.8.15
++watchdog==0.9.0
++werkzeug==0.16.0
++wheel==0.33.6
++wrapt==1.11.1
+\ No newline at end of file
+diff --git a/wandb/run-20191113_213341-opwf6x0m/wandb-events.jsonl b/wandb/run-20191113_213341-opwf6x0m/wandb-events.jsonl
+new file mode 100644
+index 0000000..0a65fa7
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/wandb-events.jsonl
+@@ -0,0 +1 @@
++{"system.cpu": 58.9, "system.memory": 78.8, "system.disk": 26.1, "system.proc.memory.availableMB": 1668.45, "system.proc.memory.rssMB": 1547.1, "system.proc.memory.percent": 19.65, "system.proc.cpu.threads": 8.5, "system.network.sent": 159461, "system.network.recv": 79984, "_wandb": true, "_timestamp": 1573680825, "_runtime": 4}
+diff --git a/wandb/run-20191113_213341-opwf6x0m/wandb-history.jsonl b/wandb/run-20191113_213341-opwf6x0m/wandb-history.jsonl
+new file mode 100644
+index 0000000..e69de29
+diff --git a/wandb/run-20191113_213341-opwf6x0m/wandb-metadata.json b/wandb/run-20191113_213341-opwf6x0m/wandb-metadata.json
+new file mode 100644
+index 0000000..1345267
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/wandb-metadata.json
+@@ -0,0 +1,23 @@
++{
++    "root": "/home/itrushkin/Documents/digit-recognizer",
++    "program": "train.py",
++    "git": {
++        "remote": "https://github.com/trushkin-ilya/digit-recognizer.git",
++        "commit": "957466bf2d3a1406cef35e6c640bd0769d31d57c"
++    },
++    "email": "viciousde@gmail.com",
++    "startedAt": "2019-11-13T21:33:41.076858",
++    "host": "localhost.localdomain",
++    "username": "itrushkin",
++    "executable": "/usr/bin/python3",
++    "os": "Linux-4.18.19-100.fc27.x86_64-x86_64-with-fedora-27-Twenty_Seven",
++    "python": "3.6.6",
++    "cpu_count": 4,
++    "args": [],
++    "state": "killed",
++    "jobType": null,
++    "mode": "run",
++    "project": "digit-recognizer",
++    "heartbeatAt": "2019-11-13T21:33:46.691468",
++    "exitcode": 255
++}
+diff --git a/wandb/run-20191113_213341-opwf6x0m/wandb-summary.json b/wandb/run-20191113_213341-opwf6x0m/wandb-summary.json
+new file mode 100644
+index 0000000..9c16da5
+--- /dev/null
++++ b/wandb/run-20191113_213341-opwf6x0m/wandb-summary.json
+@@ -0,0 +1,3684 @@
++{
++    "graph_0": {
++        "_type": "graph",
++        "format": "torch",
++        "nodes": [
++            {
++                "name": "models.0",
++                "id": 140584862307048,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.1",
++                "id": 140584862309848,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.2",
++                "id": 140584862306488,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.3",
++                "id": 140584850932680,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.4",
++                "id": 140584850935648,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.5",
++                "id": 140584851057464,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.6",
++                "id": 140584850695952,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.7",
++                "id": 140584850813672,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.8",
++                "id": 140584850816640,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.9",
++                "id": 140584850418264,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.10",
++                "id": 140584850064944,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.11",
++                "id": 140584850170376,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.12",
++                "id": 140584850173344,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.13",
++                "id": 140584849791352,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            },
++            {
++                "name": "models.14",
++                "id": 140584849965128,
++                "class_name": "SuperLeNet(\n  (conv): Sequential(\n    (0): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (1): ReLU(inplace=True)\n    (2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (4): ReLU(inplace=True)\n    (5): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (6): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2))\n    (7): ReLU(inplace=True)\n    (8): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (9): Dropout(p=0.4, inplace=False)\n    (10): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (11): ReLU(inplace=True)\n    (12): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (13): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n    (14): ReLU(inplace=True)\n    (15): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (16): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2))\n    (17): ReLU(inplace=True)\n    (18): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (19): Dropout(p=0.4, inplace=False)\n  )\n  (fc): Sequential(\n    (0): Linear(in_features=1024, out_features=128, bias=True)\n    (1): ReLU(inplace=True)\n    (2): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (3): Dropout(p=0.4, inplace=False)\n    (4): Linear(in_features=128, out_features=10, bias=True)\n  )\n)",
++                "parameters": [
++                    [
++                        "conv.0.weight",
++                        [
++                            32,
++                            1,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.0.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.2.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.3.weight",
++                        [
++                            32,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.3.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.5.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.6.weight",
++                        [
++                            32,
++                            32,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.6.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.weight",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.8.bias",
++                        [
++                            32
++                        ]
++                    ],
++                    [
++                        "conv.10.weight",
++                        [
++                            64,
++                            32,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.10.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.12.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.13.weight",
++                        [
++                            64,
++                            64,
++                            3,
++                            3
++                        ]
++                    ],
++                    [
++                        "conv.13.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.15.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.16.weight",
++                        [
++                            64,
++                            64,
++                            5,
++                            5
++                        ]
++                    ],
++                    [
++                        "conv.16.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.weight",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "conv.18.bias",
++                        [
++                            64
++                        ]
++                    ],
++                    [
++                        "fc.0.weight",
++                        [
++                            128,
++                            1024
++                        ]
++                    ],
++                    [
++                        "fc.0.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.weight",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.2.bias",
++                        [
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.weight",
++                        [
++                            10,
++                            128
++                        ]
++                    ],
++                    [
++                        "fc.4.bias",
++                        [
++                            10
++                        ]
++                    ]
++                ],
++                "output_shape": [
++                    [
++                        64,
++                        10
++                    ]
++                ],
++                "num_parameters": [
++                    288,
++                    32,
++                    32,
++                    32,
++                    9216,
++                    32,
++                    32,
++                    32,
++                    25600,
++                    32,
++                    32,
++                    32,
++                    18432,
++                    64,
++                    64,
++                    64,
++                    36864,
++                    64,
++                    64,
++                    64,
++                    102400,
++                    64,
++                    64,
++                    64,
++                    131072,
++                    128,
++                    128,
++                    128,
++                    1280,
++                    10
++                ]
++            }
++        ],
++        "edges": []
++    }
++}

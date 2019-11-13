@@ -2,28 +2,32 @@ import torch
 import torch.utils.data
 from torchvision import datasets, transforms
 import PIL
+import numpy as np
 import pandas as pd
 
+class MNISTTrainDataset(torch.utils.data.Dataset):
+    def __init__(self, path):
+        self.transform = transforms.Compose(
+                            [transforms.ToPILImage(), transforms.RandomAffine(20,(0.11,0.11)),
+                             transforms.ToTensor(), transforms.Normalize(mean=(0.1307,), std=(0.3081,))])
+        df = pd.read_csv(path)
+        self.X = df.iloc[:,1:].values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
+        self.y = torch.from_numpy(df.iloc[:,0].values)
 
+    def __len__(self):
+        return len(self.X)
 
-train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=True, download=True,
-                    transform=transforms.Compose([
-                        transforms.RandomRotation(45, resample=PIL.Image.BILINEAR), # аугментация: поворот до 45°
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.1307,), (0.3081,))
-                    ])),
-    batch_size=64, shuffle=True, num_workers=1, pin_memory=True)
+    def __getitem__(self, idx):
+        return self.transform(self.X[idx]), self.y[idx]
 
-test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.1307,), (0.3081,))
-                    ])),
-    batch_size=1000, shuffle=True, num_workers=1, pin_memory=True)
+class MNISTTestDataset(torch.utils.data.Dataset):
+    def __init__(self, path):
+        self.transform = transforms.Compose([transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean=(0.1307,), std=(0.3081,))])
+        df = pd.read_csv(path)
+        self.X = df.values.reshape((-1,28,28)).astype(np.uint8)[:,:,:,None]
 
-test_df = pd.read_csv("test.csv")
-test_images = (test_df.iloc[:,:].values).astype('float32')
-test_images = test_images.reshape(test_images.shape[0], 28, 28)
-test_images_tensor = torch.tensor(test_images)/255.0
-kaggle_loader=torch.utils.data.DataLoader(test_images_tensor, batch_size=1, num_workers=1, shuffle=False)
+    def __len__(self):
+        return len(self.X)
+    
+    def __getitem__(self, idx):
+            return self.transform(self.X[idx])

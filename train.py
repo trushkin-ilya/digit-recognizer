@@ -1,12 +1,13 @@
 import torch
 import torch.optim as optim
 from lenet import LeNetEnsemble
-from data_loader import train_loader, test_loader, kaggle_loader
+from data_loader import MNISTTrainDataset, MNISTTestDataset
 import torch.nn.functional as F
 import os
 from torch.autograd import Variable
 import numpy as np
 import pandas as pd
+import torch.utils.data
 
 import wandb
 wandb.init(project="digit-recognizer")
@@ -78,7 +79,8 @@ if __name__ == "__main__":
     epochs = args.epochs
     momentum = args.momentum
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    train_loader = torch.utils.data.DataLoader(dataset=MNISTTrainDataset("train.csv"), batch_size=64, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(dataset=MNISTTestDataset("test.csv"),batch_size=64, shuffle=False)
     model = LeNetEnsemble(15, device)
     wandb.watch(model, log="all")
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)

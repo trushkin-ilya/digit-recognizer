@@ -1,58 +1,171 @@
-2019-11-14 00:33:41,479 DEBUG   MainThread:6586 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
-2019-11-14 00:33:41,484 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
-2019-11-14 00:33:41,488 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:41,490 DEBUG   MainThread:6586 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:41,495 DEBUG   MainThread:6586 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/opwf6x0m
-2019-11-14 00:33:41,497 INFO    MainThread:6586 [run_manager.py:wrap_existing_process():1131] wrapping existing process 6573
-2019-11-14 00:33:41,498 WARNING MainThread:6586 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
-2019-11-14 00:33:41,500 DEBUG   MainThread:6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
-2019-11-14 00:33:41,642 DEBUG   MainThread:6586 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
-2019-11-14 00:33:41,687 INFO    MainThread:6586 [run_manager.py:init_run():916] system metrics and metadata threads started
-2019-11-14 00:33:41,687 INFO    MainThread:6586 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
-2019-11-14 00:33:41,695 DEBUG   Thread-14 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:42,001 DEBUG   Thread-14 :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 574
-2019-11-14 00:33:42,005 INFO    Thread-14 :6586 [run_manager.py:_upsert_run():1035] saving patches
-2019-11-14 00:33:42,005 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:42,009 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:42,013 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:42,018 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:42,028 DEBUG   Thread-14 :6586 [cmd.py:execute():724] Popen(['git', 'merge-base', 'HEAD', '957466bf2d3a1406cef35e6c640bd0769d31d57c'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
-2019-11-14 00:33:42,031 INFO    Thread-14 :6586 [run_manager.py:_upsert_run():1039] saving pip packages
-2019-11-14 00:33:42,032 INFO    Thread-14 :6586 [run_manager.py:_upsert_run():1041] initializing streaming files api
-2019-11-14 00:33:42,032 INFO    Thread-14 :6586 [run_manager.py:_upsert_run():1048] unblocking file change observer, beginning sync with W&B servers
-2019-11-14 00:33:42,032 INFO    MainThread:6586 [run_manager.py:wrap_existing_process():1148] informing user process we are ready to proceed
-2019-11-14 00:33:42,035 DEBUG   Thread-15 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:42,035 INFO    MainThread:6586 [run_manager.py:_sync_etc():1255] entering loop for messages from user process
-2019-11-14 00:33:42,300 DEBUG   Thread-15 :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
-2019-11-14 00:33:42,483 INFO    Thread-3  :6586 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/config.yaml
-2019-11-14 00:33:42,490 DEBUG   Thread-3  :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:42,830 DEBUG   Thread-3  :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
-2019-11-14 00:33:42,832 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/wandb-metadata.json
-2019-11-14 00:33:42,832 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/requirements.txt
-2019-11-14 00:33:42,833 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/diff.patch
-2019-11-14 00:33:42,833 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/output.log
-2019-11-14 00:33:43,483 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/wandb-summary.json
-2019-11-14 00:33:44,484 INFO    Thread-3  :6586 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/wandb-summary.json
-2019-11-14 00:33:44,485 INFO    Thread-3  :6586 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/output.log
-2019-11-14 00:33:44,487 DEBUG   Thread-7  :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:44,491 DEBUG   Thread-16 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:44,744 DEBUG   Thread-16 :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 800
-2019-11-14 00:33:44,748 DEBUG   Thread-16 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
-2019-11-14 00:33:45,165 DEBUG   Thread-7  :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/opwf6x0m/file_stream HTTP/1.1" 200 311
-2019-11-14 00:33:45,277 DEBUG   Thread-16 :6586 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/opwf6x0m/___batch_archive_1.tgz?Expires=1573680884&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=SgwTmUypTovpSGaXbjGM2d5KEwDfD%2B88WYVe7gBMpqmLbRVjHpMuVO%2FAH%2BFwfM1tQ2gINFouAGehkyF6AhJu1jr88ToE4P%2BMuG%2FbAETJ03Ukslwh01hE66TelmA2PJX3rMzI4xAq38wxN4LVEn9garzlPJL2spHDjFB1Ao1V5NJu39LbmYKRSuJCZKU%2B6FdGO6hcZIS7f4EC6wAIkeYkRmrZwhADSpp0pI7dCFIXNiDHPy%2Fbvta1fLfdPbzMYmqDUr4mBrpFD2%2BB7ToPoEfeMUFBaC%2B4nwh6aqV3PrQvNnXZicN8Bt0lu6OYOF22DnzExPX3KslxLTyvOHWkyt4KtQ%3D%3D HTTP/1.1" 200 0
-2019-11-14 00:33:45,829 INFO    MainThread:6586 [run_manager.py:_sync_etc():1311] process received interrupt signal, shutting down
-2019-11-14 00:33:45,829 INFO    MainThread:6586 [run_manager.py:_sync_etc():1364] closing log streams and sending exitcode to W&B
-2019-11-14 00:33:45,830 INFO    MainThread:6586 [run_manager.py:shutdown():1055] shutting down system stats and metadata service
-2019-11-14 00:33:46,485 INFO    Thread-3  :6586 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/wandb-events.jsonl
-2019-11-14 00:33:46,692 INFO    MainThread:6586 [run_manager.py:shutdown():1067] stopping streaming files and file change observer
-2019-11-14 00:33:46,713 DEBUG   Thread-7  :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/opwf6x0m/file_stream HTTP/1.1" 200 311
-2019-11-14 00:33:47,485 INFO    Thread-3  :6586 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_213341-opwf6x0m/wandb-metadata.json
-2019-11-14 00:33:47,495 DEBUG   MainThread:6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:47,803 DEBUG   MainThread:6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 622
-2019-11-14 00:33:49,498 DEBUG   Thread-19 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
-2019-11-14 00:33:49,777 DEBUG   Thread-19 :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 814
-2019-11-14 00:33:49,782 DEBUG   Thread-19 :6586 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
-2019-11-14 00:33:50,059 DEBUG   Thread-7  :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/opwf6x0m/file_stream HTTP/1.1" 200 311
-2019-11-14 00:33:50,246 DEBUG   Thread-7  :6586 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/opwf6x0m/file_stream HTTP/1.1" 200 310
-2019-11-14 00:33:50,246 INFO    MainThread:6586 [run_manager.py:_sync_etc():1376] process only ran for 9 seconds, not syncing files
-2019-11-14 00:33:50,246 INFO    MainThread:6586 [opwf6x0m:run_manager.py:_sync_etc():1376] process only ran for 9 seconds, not syncing files
+2019-11-14 01:20:51,831 DEBUG   MainThread:9503 [wandb_config.py:_load_defaults():110] no defaults not found in config-defaults.yaml
+2019-11-14 01:20:51,836 DEBUG   MainThread:9503 [cmd.py:execute():724] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=<valid stream>)
+2019-11-14 01:20:51,841 DEBUG   MainThread:9503 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:51,844 DEBUG   MainThread:9503 [cmd.py:execute():724] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:51,851 DEBUG   MainThread:9503 [run_manager.py:__init__():535] Initialized sync for digit-recognizer/bu7nloio
+2019-11-14 01:20:51,855 INFO    MainThread:9503 [run_manager.py:wrap_existing_process():1131] wrapping existing process 9493
+2019-11-14 01:20:51,855 WARNING MainThread:9503 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
+2019-11-14 01:20:51,857 DEBUG   MainThread:9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
+2019-11-14 01:20:51,996 DEBUG   MainThread:9503 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 37669
+2019-11-14 01:20:52,040 INFO    MainThread:9503 [run_manager.py:init_run():916] system metrics and metadata threads started
+2019-11-14 01:20:52,041 INFO    MainThread:9503 [run_manager.py:init_run():950] upserting run before process can begin, waiting at most 10 seconds
+2019-11-14 01:20:52,049 DEBUG   Thread-14 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:20:52,381 DEBUG   Thread-14 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 576
+2019-11-14 01:20:52,387 INFO    Thread-14 :9503 [run_manager.py:_upsert_run():1035] saving patches
+2019-11-14 01:20:52,387 DEBUG   Thread-14 :9503 [cmd.py:execute():724] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:52,392 DEBUG   Thread-14 :9503 [cmd.py:execute():724] Popen(['git', 'diff', '--cached', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:52,396 DEBUG   Thread-14 :9503 [cmd.py:execute():724] Popen(['git', 'diff', '--abbrev=40', '--full-index', '--raw'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:52,402 DEBUG   Thread-14 :9503 [cmd.py:execute():724] Popen(['git', 'version'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:52,440 DEBUG   Thread-14 :9503 [cmd.py:execute():724] Popen(['git', 'merge-base', 'HEAD', '957466bf2d3a1406cef35e6c640bd0769d31d57c'], cwd=/home/itrushkin/Documents/digit-recognizer, universal_newlines=False, shell=None, istream=None)
+2019-11-14 01:20:52,463 INFO    Thread-14 :9503 [run_manager.py:_upsert_run():1039] saving pip packages
+2019-11-14 01:20:52,464 INFO    Thread-14 :9503 [run_manager.py:_upsert_run():1041] initializing streaming files api
+2019-11-14 01:20:52,464 INFO    Thread-14 :9503 [run_manager.py:_upsert_run():1048] unblocking file change observer, beginning sync with W&B servers
+2019-11-14 01:20:52,464 INFO    MainThread:9503 [run_manager.py:wrap_existing_process():1148] informing user process we are ready to proceed
+2019-11-14 01:20:52,468 INFO    MainThread:9503 [run_manager.py:_sync_etc():1255] entering loop for messages from user process
+2019-11-14 01:20:52,468 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:20:52,712 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:20:52,836 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/config.yaml
+2019-11-14 01:20:52,842 DEBUG   Thread-3  :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:20:53,110 DEBUG   Thread-3  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 624
+2019-11-14 01:20:53,112 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/upstream_diff_957466bf2d3a1406cef35e6c640bd0769d31d57c.patch
+2019-11-14 01:20:53,113 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:20:53,113 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/requirements.txt
+2019-11-14 01:20:53,113 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:20:53,114 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/diff.patch
+2019-11-14 01:20:54,842 DEBUG   Thread-16 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:20:55,092 DEBUG   Thread-16 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 802
+2019-11-14 01:20:55,096 DEBUG   Thread-16 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
+2019-11-14 01:20:55,516 DEBUG   Thread-16 :9503 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/bu7nloio/___batch_archive_1.tgz?Expires=1573683715&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=a%2Btk2ZuZ7gew6di4DEv%2FLd3U3k9Ei0jTxLimqWk0sgjmc3koJSPdy%2FLeBwtFAXMQDQMZYm3Dqs5kuBkhv44DI0fgoJ6Mifds0M5p%2B6TR5g1MbBc7EAS6eJkMjAWkqqbt1iTGL6Gx4RqvOsqdDDOvMUna4y3gIx1jP3it4JKrDB6JSs4qkZLmSfRqGbJvXinRny%2BpPvswOkWItjuUMbK8AaxhBnjY4dpU2owboct7tN%2BpoRzMRgxebNiqOgwwLID0%2FuH2OSTJsMXybz11is%2F7sTNs4YSIY%2Bbprgh9voID1MlCmqC5MNCW%2FzGniW89RvWF0M5LHL5O43GEBLWUadcqWg%3D%3D HTTP/1.1" 200 0
+2019-11-14 01:20:58,839 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-summary.json
+2019-11-14 01:20:58,849 DEBUG   Thread-7  :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:20:59,560 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:20:59,840 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:21:01,795 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:07,715 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:21:07,950 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:21:08,843 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:21:10,796 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:10,844 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:21:20,847 INFO    Thread-3  :9503 [run_manager.py:_on_file_created():671] file/dir created: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:21:21,070 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:22,848 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:21:22,954 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:21:23,222 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:21:24,654 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:24,848 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:21:34,493 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:34,852 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:21:38,226 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:21:38,480 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:21:40,854 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:21:47,140 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:47,856 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:21:50,858 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:21:51,087 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:21:53,484 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:21:53,745 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:21:56,859 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:22:00,861 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:22:08,749 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:22:09,017 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:22:10,975 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:22:12,865 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:22:13,865 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:22:20,867 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:22:21,122 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:22:24,021 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:22:24,286 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:22:28,870 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:22:28,870 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:22:38,231 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:22:39,291 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:22:39,552 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:22:43,878 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:22:44,878 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:22:50,881 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:22:51,160 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:22:54,561 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:22:55,026 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:23:00,885 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:23:00,886 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:23:10,030 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:23:10,268 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:23:10,755 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:23:16,897 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:23:17,898 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:23:20,899 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:23:21,184 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:23:25,272 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:23:25,520 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:23:32,722 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:23:32,903 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:23:32,904 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:23:40,524 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:23:40,783 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:23:45,555 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:23:45,908 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:23:48,909 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:23:50,910 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:23:55,787 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:23:56,035 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:23:57,850 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:23:57,913 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:24:04,915 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:24:10,327 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:24:10,917 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:24:11,040 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:24:11,298 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:24:20,920 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:24:20,923 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:24:21,241 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:24:22,922 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:24:26,302 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:24:26,551 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:24:32,868 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:24:36,927 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:24:36,927 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:24:41,556 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:24:41,817 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:24:46,626 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:24:49,931 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:24:50,932 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:24:52,932 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:24:56,820 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:24:57,086 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:25:01,270 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:25:02,936 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:25:08,938 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:25:12,091 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:25:12,356 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:25:13,089 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:25:15,941 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:25:20,943 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:25:24,944 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:25:27,360 DEBUG   Thread-15 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:25:27,606 DEBUG   Thread-15 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 46
+2019-11-14 01:25:28,444 INFO    MainThread:9503 [run_manager.py:_sync_etc():1311] process received interrupt signal, shutting down
+2019-11-14 01:25:28,444 INFO    MainThread:9503 [run_manager.py:_sync_etc():1364] closing log streams and sending exitcode to W&B
+2019-11-14 01:25:28,445 INFO    MainThread:9503 [run_manager.py:shutdown():1055] shutting down system stats and metadata service
+2019-11-14 01:25:28,489 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:25:28,946 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-summary.json
+2019-11-14 01:25:28,956 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-events.jsonl
+2019-11-14 01:25:28,956 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/output.log
+2019-11-14 01:25:28,957 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-history.jsonl
+2019-11-14 01:25:29,333 INFO    MainThread:9503 [run_manager.py:shutdown():1067] stopping streaming files and file change observer
+2019-11-14 01:25:29,947 INFO    Thread-3  :9503 [run_manager.py:_on_file_modified():682] file/dir modified: /home/itrushkin/Documents/digit-recognizer/wandb/run-20191113_222051-bu7nloio/wandb-metadata.json
+2019-11-14 01:25:29,960 DEBUG   MainThread:9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:25:30,262 DEBUG   MainThread:9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 624
+2019-11-14 01:25:30,272 DEBUG   Thread-19 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:25:30,548 DEBUG   Thread-19 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 804
+2019-11-14 01:25:30,555 DEBUG   Thread-19 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
+2019-11-14 01:25:30,869 DEBUG   Thread-20 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): api.wandb.ai:443
+2019-11-14 01:25:31,190 DEBUG   Thread-20 :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 808
+2019-11-14 01:25:31,197 DEBUG   Thread-20 :9503 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): storage.googleapis.com:443
+2019-11-14 01:25:31,707 DEBUG   Thread-20 :9503 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/bu7nloio/___batch_archive_2.tgz?Expires=1573683991&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=l%2BrDy8na4cLX%2F%2Bj1BBOC1hCZD0o5Ql8JfR66GCeHa2cPLj9b5JN3KcWHay8FytpK%2FTyoOEmhNObhS2R8G%2BNThovno3CTzYPv3HooE271lClVs%2Bc64PhunzCSA70y8H5gekCmyAQBFR96V1Pk%2FvoM8RJjWcR%2BuGuKN47DNBHB3fW8vX31huGZ%2BvfHy9Ojxiigdk%2FzJgYPj%2BnINbNfvabZqu1EMGyVq2JqmUNqz9WSGloQjnMKOypIvIs2Uj%2FPPTxzgK7L5eA9kVFtKDM14UC8mMjzaoonhs%2FWrp9A7KsXi05KuhzTO9OxMumUAzjvaMkW7pRV6O9mxLXOPFr2AErpXA%3D%3D HTTP/1.1" 200 0
+2019-11-14 01:25:32,835 DEBUG   Thread-19 :9503 [connectionpool.py:_make_request():437] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/ilya-trushkin/digit-recognizer/bu7nloio/wandb-summary.json?Expires=1573683990&GoogleAccessId=gorilla-cloud-storage%40wandb-production.iam.gserviceaccount.com&Signature=GwLZ%2BQX8saQcOD8W0GyEODKVBBooN%2FFnhLJBUP2mkO6uO8AmYs8riwTKySwrO7BylTyim1SHs2RrB5cnvUvSOeCl0VyaLTT%2F%2FpWgCMNrRhtLw%2F3o%2BhLbcp9%2F5gzAKUxBxh4N4F7YDClHXL4J2dX2SXSXunQVjSYvgTHzgHL%2F6IVy3US5EGy1p7bdKdmJiphysnHUDexMfS%2B4%2B6yixwXiEl%2B5MVr6ddoib2knNvlxzmoQkkb6CUFqgcEKBZ%2FntezSdnC2E5Nwps1sknG2hB%2FriG6%2FgOIf%2FenT3SACZ61gIrdbsWMueX0LatuI9vn4ZLSwQPN8oRe3a06HRVMZDgjlbA%3D%3D HTTP/1.1" 200 0
+2019-11-14 01:25:34,508 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 311
+2019-11-14 01:25:35,001 DEBUG   Thread-7  :9503 [connectionpool.py:_make_request():437] https://api.wandb.ai:443 "POST /files/ilya-trushkin/digit-recognizer/bu7nloio/file_stream HTTP/1.1" 200 310
+2019-11-14 01:25:35,037 INFO    MainThread:9503 [run_manager.py:_sync_etc():1383] rendering summary
+2019-11-14 01:25:35,070 INFO    MainThread:9503 [run_manager.py:_sync_etc():1416] syncing files to cloud storage
+2019-11-14 01:25:35,072 INFO    MainThread:9503 [run_manager.py:_sync_etc():1431] syncing complete: https://app.wandb.ai/ilya-trushkin/digit-recognizer/runs/bu7nloio
+2019-11-14 01:25:35,072 INFO    MainThread:9503 [bu7nloio:run_manager.py:_sync_etc():1431] syncing complete: https://app.wandb.ai/ilya-trushkin/digit-recognizer/runs/bu7nloio

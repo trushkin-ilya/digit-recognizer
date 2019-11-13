@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "train.py", line 89, in <module>
+    train(model, device, train_loader, optimizer, epoch)
+  File "train.py", line 22, in train
+    output = model(data)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/Documents/digit-recognizer/lenet.py", line 193, in forward
+    output += model(x)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/Documents/digit-recognizer/lenet.py", line 155, in forward
+    x = self.conv(x)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/conv.py", line 345, in forward
+    return self.conv2d_forward(input, self.weight)
+  File "/home/itrushkin/.local/lib/python3.6/site-packages/torch/nn/modules/conv.py", line 342, in conv2d_forward
+    self.padding, self.dilation, self.groups)
+RuntimeError: [enforce fail at CPUAllocator.cpp:64] . DefaultCPUAllocator: can't allocate memory: you tried to allocate 100352000 bytes. Error code 12 (Cannot allocate memory)
+
