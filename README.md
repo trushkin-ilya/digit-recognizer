@@ -11,3 +11,9 @@ To skip implementation of visualizing, I used [Weights & Biases tool](https://ww
 ![text](https://github.com/trushkin-ilya/digit-recognizer/blob/master/W&B%20Chart%2011_9_2019,%2011_12_22%20PM.png?raw=true)
 
 Visualizations, network architechtures and execution logs available at [Weights & Biases project](https://app.wandb.ai/ilya-trushkin/digit-recognizer).
+# Running scripts locally
+Make sure to install dependencies from `requirements.txt`. After that run from root directory:
+
+``train.py --epochs=100 --lr=0.01 --momentum=0.5``
+
+While executing, you will be asked for wandb visualizing. But if you don't have access to my W&B project, you won't be able to proceed. Please, skip visualisation or ask me to grant you access rights.
