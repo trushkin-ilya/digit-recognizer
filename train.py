@@ -29,7 +29,7 @@ def train(model, device, train_loader, optimizer, epoch):
             
 def test(model, device, test_loader, use_wandb):
     model.eval()
-    preds=torch.LongTensor()
+    preds=torch.LongTensor().to(device)
     with torch.no_grad():
         for _, data in enumerate(test_loader):
             data = data.to(device)
