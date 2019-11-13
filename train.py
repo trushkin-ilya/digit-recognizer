@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     for epoch in range(1, epochs + 1):    
         train(model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        test(model, device, test_loader, use_wandb)
 
     if use_wandb:
         torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
