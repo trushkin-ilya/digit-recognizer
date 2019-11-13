@@ -36,7 +36,8 @@ def test(model, device, test_loader, use_wandb, output_dir):
         for _, data in enumerate(test_loader):
             data = data.to(device)
             output = model(data)
-            torch.cat((preds, output.argmax(dim=1, keepdim=True)))
+            out_preds = output.argmax(dim=1, keepdim=True)
+            preds = torch.cat((preds, out_preds))
     results = pd.Series(np.array(preds.cpu(), dtype=np.int32), name="Label")
     submission = pd.concat([pd.Series(
         range(1, len(results)+1), dtype=np.int32, name="ImageId"), results], axis=1)
