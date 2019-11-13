@@ -29,18 +29,13 @@ def train(model, device, train_loader, optimizer, epoch):
             
 def test(model, device, test_loader, use_wandb):
     model.eval()
-    test_loss = 0
-    correct = 0
+    preds=torch.LongTensor()
     with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
+        for data in test_loader:
+            data = data.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()
-            pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(target.view_as(pred)).sum().item()
-        predictions = make_predictions(model, test_loader)
-        print(predictions)
-    results = pd.Series(np.array(predictions, dtype = np.int32),name="Label")
+            torch.cat((preds,output.argmax(dim=1, keepdim=True))
+    results = pd.Series(np.array(preds, dtype = np.int32),name="Label")
     submission = pd.concat([pd.Series(range(1,len(results)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
     submission = submission.astype(np.int32)
     submission.to_csv("/content/gdrive/My Drive/12345/predictions.csv",index=False)
@@ -52,13 +47,11 @@ def test(model, device, test_loader, use_wandb):
     if use_wandb:
         wandb.log({"Test Accuracy": 100. * correct / len(test_loader.dataset), "Test Loss": test_loss})
 
-def make_predictions(model,data_loader):
+def make_predictions(model,data_loader,device):
     model.eval()
     test_preds = torch.LongTensor()
     
-    for i, data in enumerate(data_loader):
-        data = data.unsqueeze(1)
-        
+    for data in data_loader:
         if torch.cuda.is_available():
             data = data.cuda()
             
