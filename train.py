@@ -37,6 +37,7 @@ def test(model, device, test_loader):
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
         predictions = make_predictions(model, kaggle_loader)
+        print(predictions)
     results = pd.Series(np.array(predictions, dtype = np.int32),name="Label")
     submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
     submission = submission.astype(np.int32)
