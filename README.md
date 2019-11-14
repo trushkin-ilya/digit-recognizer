@@ -12,6 +12,6 @@ To skip implementation of visualizing, I used [Weights & Biases tool](https://ww
 
 Visualizations, network architechtures and execution logs available at [Weights & Biases project](https://app.wandb.ai/ilya-trushkin/digit-recognizer).
 # Running scripts locally
-Make sure to install dependencies from `requirements.txt`. After that run from root directory:
+Make sure to install dependencies from `requirements.txt`. After that run `train.py` from root directory which is equivalent to:
 
-``train.py --epochs=100 --lr=0.01 --momentum=0.5 --use-wandb=False --output-dir=.``
+``train.py --epochs=100 --lr=0.01 --momentum=0.5 --use-wandb=False --output-dir=. --predict_every=1``
