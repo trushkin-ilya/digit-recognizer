@@ -28,8 +28,7 @@ def train(model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-
-def test(model, device, test_loader, use_wandb, output_dir):
+def predict(model, device, test_loader, use_wandb, output_dir):
     model.eval()
     preds = torch.LongTensor().to(device)
     with torch.no_grad():
@@ -44,27 +43,6 @@ def test(model, device, test_loader, use_wandb, output_dir):
     submission = submission.astype(np.int32)
     submission.to_csv(output_dir + "/predictions.csv", index=False)
 
-    if use_wandb:
-        wandb.log({"Test Accuracy": 100. * correct /
-                   len(test_loader.dataset), "Test Loss": test_loss})
-
-
-def make_predictions(model, data_loader, device):
-    model.eval()
-    test_preds = torch.LongTensor()
-
-    for data in data_loader:
-        if torch.cuda.is_available():
-            data = data.cuda()
-
-        output = model(data)
-
-        preds = output.cpu().data.max(1, keepdim=True)[1][0]
-        test_preds = torch.cat((test_preds, preds), dim=0)
-
-    return test_preds
-
-
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         description="Trains the 15 LeNet ensemble.")
@@ -73,27 +51,35 @@ if __name__ == "__main__":
     argparser.add_argument("--momentum", type=float, default=0.5)
     argparser.add_argument("--use-wandb", type=bool, default=False)
     argparser.add_argument("--output-dir", type=str, default=".")
+    argparser.add_argument("--predict-every", type=int, default=1)
     args = argparser.parse_args()
     lr = args.lr
     epochs = args.epochs
     momentum = args.momentum
     use_wandb = args.use_wandb
     output_dir = args.output_dir
+    predict_every = args.predict_every
+    
     if use_wandb:
         wandb.init(project="digit-recognizer")
+        
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     train_loader = torch.utils.data.DataLoader(
         dataset=MNISTTrainDataset("train.csv"), batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(
         dataset=MNISTTestDataset("test.csv"), batch_size=64, shuffle=False)
+    
     model = LeNetEnsemble(15, device)
+    
     if use_wandb:
         wandb.watch(model, log="all")
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
     for epoch in range(1, epochs + 1):
         train(model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, use_wandb, output_dir)
+        if epoch % predict_every == 1:
+            predict(model, device, test_loader, use_wandb, output_dir)
 
     if use_wandb:
         torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
