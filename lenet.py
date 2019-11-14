@@ -118,6 +118,7 @@ class LeNet4(nn.Module):
         x = self.fc(x)
         return F.log_softmax(x, dim=1)
 
+#все сразу
 class SuperLeNet(nn.Module):
     def __init__(self):
         super(SuperLeNet, self).__init__()
@@ -157,6 +158,7 @@ class SuperLeNet(nn.Module):
         x = self.fc(x)
         return F.log_softmax(x, dim=1)
 
+#32 фичи на 1-м слое, 64 на 2-м. полносвязные слои: 1024-120-84-10
 class LeNet32(nn.Module):
     def __init__(self):
         super(LeNet32, self).__init__()
@@ -181,6 +183,7 @@ class LeNet32(nn.Module):
         x = self.fc(x)
         return F.log_softmax(x, dim=1)
 
+#ансамбль классификаторов, в каждом из которых совмещены результаты всех экспериментов
 class LeNetEnsemble(nn.Module):
     def __init__(self, num, device):
         super(LeNetEnsemble,self).__init__()
