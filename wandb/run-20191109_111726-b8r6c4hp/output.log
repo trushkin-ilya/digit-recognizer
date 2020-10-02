@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "train.py", line 53, in <module>
-    train(model, device, train_loader, optimizer, epoch)
-NameError: name 'train_loader' is not defined

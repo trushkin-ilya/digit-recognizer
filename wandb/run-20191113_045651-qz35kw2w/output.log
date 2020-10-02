@@ -1,8 +1,0 @@
-tensor([9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9])
-Traceback (most recent call last):
-  File "train.py", line 82, in <module>
-    test(model, device, test_loader)
-  File "train.py", line 42, in test
-    submission = pd.concat([pd.Series(range(1,len(outputs)+1), dtype=np.int32, name = "ImageId"),results],axis = 1)
-NameError: name 'outputs' is not defined

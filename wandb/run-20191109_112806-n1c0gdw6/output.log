@@ -1,8 +1,0 @@
-torch.Size([64, 16, 4, 4])
-torch.Size([64, 256])
-Traceback (most recent call last):
-  File "train.py", line 54, in <module>
-    train(model, device, train_loader, optimizer, epoch)
-  File "train.py", line 15, in train
-    loss = F.nll_loss(output, target)
-NameError: name 'F' is not defined

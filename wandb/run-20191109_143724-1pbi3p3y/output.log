@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "train.py", line 51, in <module>
-    model = LeNetEnsemble(15,device)
-NameError: name 'LeNetEnsemble' is not defined

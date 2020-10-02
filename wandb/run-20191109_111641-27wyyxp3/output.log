@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "train.py", line 48, in <module>
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-NameError: name 'optim' is not defined
